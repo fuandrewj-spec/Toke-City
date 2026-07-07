@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toke City</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15181B;
+    --ink-soft:#1F2327;
+    --vapor:#F0EDE6;
+    --vapor-dim:#E4E0D6;
+    --smoke:#9A9E9C;
+    --smoke-dark:#6B706E;
+    --brass:#A9824F;
+    --brass-bright:#C7A06B;
+    --ember:#B54A34;
+    --line: rgba(240,237,230,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink);
+    color:var(--vapor);
+    font-family:'Fraunces', serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+  a{color:inherit;}
+  .display{font-family:'Space Grotesk', sans-serif; letter-spacing:0.01em;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--brass-bright);
+  }
+
+  /* ---------- AGE GATE ---------- */
+  #gate{
+    position:fixed; inset:0; z-index:100;
+    background:rgba(10,12,13,0.94);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    backdrop-filter: blur(6px);
+    transition:opacity .5s ease, visibility .5s ease;
+  }
+  #gate.hidden{opacity:0; visibility:hidden; pointer-events:none;}
+  .stamp{
+    width:min(420px, 100%);
+    background:var(--ink-soft);
+    border:1px solid var(--brass);
+    padding:44px 36px;
+    text-align:center;
+    position:relative;
+  }
+  .stamp::before, .stamp::after{
+    content:"";
+    position:absolute; width:14px; height:14px;
+    border:1px solid var(--brass);
+  }
+  .stamp::before{ top:-1px; left:-1px; border-right:none; border-bottom:none;}
+  .stamp::after{ bottom:-1px; right:-1px; border-left:none; border-top:none;}
+  .stamp .num{
+    display:inline-block; margin-bottom:18px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700; font-size:3.4rem; color:var(--brass-bright);
+    line-height:1;
+  }
+  .stamp h2{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600; font-size:1.05rem;
+    text-transform:uppercase; letter-spacing:0.12em;
+    margin-bottom:14px;
+  }
+  .stamp p{color:var(--smoke); font-size:0.95rem; line-height:1.6; margin-bottom:28px;}
+  .gate-actions{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
+  .btn{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600; font-size:0.8rem;
+    letter-spacing:0.08em; text-transform:uppercase;
+    padding:13px 26px;
+    border:1px solid var(--brass);
+    background:transparent; color:var(--vapor);
+    cursor:pointer;
+    transition:background .25s ease, color .25s ease, border-color .25s ease;
+  }
+  .btn-solid{background:var(--brass); color:var(--ink); border-color:var(--brass);}
+  .btn:hover{background:var(--brass); color:var(--ink);}
+  .btn-ghost:hover{background:transparent; color:var(--smoke); border-color:var(--smoke-dark);}
+  .btn-small{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:0.72rem;
+    letter-spacing:0.06em; text-transform:uppercase;
+    padding:10px 16px; border:1px solid var(--brass); background:transparent;
+    color:var(--vapor); cursor:pointer; width:100%;
+    transition:background .2s ease, color .2s ease;
+  }
+  .btn-small:hover{background:var(--brass); color:var(--ink);}
+  .btn-small:disabled{opacity:0.55; cursor:default; background:var(--smoke-dark); border-color:var(--smoke-dark); color:var(--ink);}
+
+  .cart-btn{
+    font-family:'Space Grotesk', sans-serif; font-size:0.8rem; letter-spacing:0.04em;
+    background:transparent; border:1px solid var(--line); color:var(--vapor);
+    padding:9px 16px; cursor:pointer; display:flex; align-items:center; gap:8px;
+    transition:border-color .2s ease;
+  }
+  .cart-btn:hover{border-color:var(--brass);}
+  .cart-count{
+    background:var(--brass); color:var(--ink); font-family:'IBM Plex Mono',monospace;
+    font-size:0.7rem; font-weight:500; padding:1px 7px; border-radius:20px; min-width:18px; text-align:center;
+  }
+
+  /* ---------- NAV ---------- */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:40;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px clamp(20px,5vw,64px);
+    background:linear-gradient(to bottom, rgba(21,24,27,0.92), rgba(21,24,27,0));
+  }
+  .logo{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:1.05rem; letter-spacing:0.02em;}
+  .logo span{color:var(--brass-bright);}
+  nav ul{list-style:none; display:flex; gap:32px;}
+  nav a{
+    font-family:'Space Grotesk', sans-serif; font-size:0.82rem;
+    letter-spacing:0.04em; text-decoration:none; color:var(--vapor);
+    opacity:0.85; transition:opacity .2s ease;
+  }
+  nav a:hover{opacity:1; color:var(--brass-bright);}
+  .nav-toggle{display:none;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative; min-height:100vh;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:0 clamp(20px,5vw,64px);
+    overflow:hidden;
+  }
+  .vapor-field{
+    position:absolute; inset:0; z-index:0; opacity:0.55;
+    pointer-events:none;
+  }
+  .hero-content{position:relative; z-index:2; max-width:820px; padding-top:60px;}
+  .hero h1{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:clamp(2.6rem, 7vw, 5.4rem);
+    line-height:0.98; letter-spacing:-0.01em;
+    margin:18px 0 26px;
+  }
+  .hero h1 em{font-style:normal; color:var(--brass-bright);}
+  .hero p.lede{
+    font-size:clamp(1.05rem,1.6vw,1.25rem);
+    color:var(--vapor-dim); max-width:520px; line-height:1.65;
+    font-weight:300; margin-bottom:36px;
+  }
+  .hero-actions{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:64px;}
+  .hero-meta{
+    display:flex; gap:40px; flex-wrap:wrap;
+    border-top:1px solid var(--line); padding-top:22px; max-width:640px;
+  }
+  .hero-meta div{font-family:'IBM Plex Mono', monospace; font-size:0.75rem; color:var(--smoke);}
+  .hero-meta strong{display:block; color:var(--vapor); font-size:0.95rem; font-family:'Space Grotesk',sans-serif; margin-bottom:4px;}
+
+  /* ---------- SECTION SHELL ---------- */
+  section{padding:110px clamp(20px,5vw,64px);}
+  .section-head{margin-bottom:56px; max-width:640px;}
+  .section-head h2{
+    font-family:'Space Grotesk', sans-serif; font-weight:600;
+    font-size:clamp(1.8rem,3.4vw,2.6rem); margin-top:14px;
+  }
+  .section-head p{color:var(--smoke); margin-top:16px; line-height:1.7; font-size:1.02rem;}
+
+  /* ---------- ABOUT ---------- */
+  .about{background:var(--vapor); color:var(--ink);}
+  .about .eyebrow{color:var(--ember);}
+  .about .section-head p{color:var(--smoke-dark);}
+  .about-grid{
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:70px; align-items:start;
+  }
+  .about-copy p{line-height:1.8; margin-bottom:20px; font-size:1.05rem; color:#3A3D3B;}
+  .rule-list{border-top:1px solid rgba(21,24,27,0.14);}
+  .rule-list li{
+    display:flex; justify-content:space-between; gap:20px;
+    padding:18px 0; border-bottom:1px solid rgba(21,24,27,0.14);
+    font-family:'Space Grotesk', sans-serif; font-size:0.95rem;
+  }
+  .rule-list li span:last-child{color:var(--smoke-dark); font-family:'IBM Plex Mono',monospace; font-size:0.82rem;}
+
+  /* ---------- CATALOG ---------- */
+  .catalog{background:var(--ink);}
+  .catalog .section-head{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px; max-width:none;}
+  .tin-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line);
+  }
+  .tin{
+    background:var(--ink); padding:34px 28px;
+    display:flex; flex-direction:column; min-height:280px;
+    transition:background .3s ease;
+  }
+  .tin:hover{background:var(--ink-soft);}
+  .tin .batch{font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--smoke-dark); margin-bottom:22px;}
+  .tin h3{font-family:'Space Grotesk',sans-serif; font-size:1.3rem; font-weight:600; margin-bottom:12px;}
+  .tin p{color:var(--smoke); font-size:0.92rem; line-height:1.65; flex-grow:1;}
+  .tin .spec{
+    display:flex; gap:16px; margin-top:22px; padding-top:16px;
+    border-top:1px solid var(--line);
+    font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--brass-bright);
+  }
+
+  /* ---------- LOCATION ---------- */
+  .location{background:var(--ink-soft);}
+  .loc-grid{display:grid; grid-template-columns:1fr 1fr; gap:70px;}
+  .hours-table{width:100%; border-collapse:collapse; font-family:'Space Grotesk',sans-serif;}
+  .hours-table tr{border-bottom:1px solid var(--line);}
+  .hours-table td{padding:14px 0; font-size:0.95rem;}
+  .hours-table td:last-child{text-align:right; font-family:'IBM Plex Mono',monospace; color:var(--smoke);}
+  .addr-block p{color:var(--smoke); line-height:1.8; margin-bottom:24px;}
+  .addr-block .big{font-family:'Space Grotesk',sans-serif; color:var(--vapor); font-size:1.3rem; margin-bottom:10px;}
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    background:var(--ink); border-top:1px solid var(--line);
+    padding:50px clamp(20px,5vw,64px) 34px;
+  }
+  .footer-top{display:flex; justify-content:space-between; flex-wrap:wrap; gap:30px; margin-bottom:40px;}
+  .footer-note{max-width:480px; color:var(--smoke-dark); font-size:0.82rem; line-height:1.7; font-family:'IBM Plex Mono',monospace;}
+  .footer-bottom{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    font-family:'Space Grotesk',sans-serif; font-size:0.78rem; color:var(--smoke-dark);
+    border-top:1px solid var(--line); padding-top:24px;
+  }
+
+  @media (max-width: 900px){
+    nav{display:none;}
+    .about-grid, .loc-grid{grid-template-columns:1fr; gap:40px;}
+    .tin-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width: 600px){
+    .tin-grid{grid-template-columns:1fr;}
+    .hero-meta{gap:24px;}
+  }
+
+  :focus-visible{outline:2px solid var(--brass-bright); outline-offset:3px;}
+
+  /* ---------- CART DRAWER ---------- */
+  .tin-price{
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1.05rem;
+    color:var(--vapor); margin:16px 0 12px;
+  }
+  #cartOverlay{
+    position:fixed; inset:0; background:rgba(10,12,13,0.6); z-index:90;
+    opacity:0; visibility:hidden; transition:opacity .3s ease, visibility .3s ease;
+  }
+  #cartOverlay.open{opacity:1; visibility:visible;}
+  .cart-drawer{
+    position:fixed; top:0; right:0; bottom:0; z-index:91;
+    width:min(400px, 92vw); background:var(--ink-soft);
+    border-left:1px solid var(--line);
+    display:flex; flex-direction:column;
+    transform:translateX(100%); transition:transform .35s ease;
+  }
+  .cart-drawer.open{transform:translateX(0);}
+  .cart-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:26px clamp(20px,4vw,32px); border-bottom:1px solid var(--line);
+  }
+  .cart-head h3{font-family:'Space Grotesk',sans-serif; font-size:1.1rem; font-weight:600;}
+  .cart-close{background:none; border:none; color:var(--smoke); font-size:1.4rem; cursor:pointer; line-height:1;}
+  .cart-close:hover{color:var(--vapor);}
+  .cart-items{flex-grow:1; overflow-y:auto; padding:10px clamp(20px,4vw,32px);}
+  .cart-empty{color:var(--smoke); font-size:0.92rem; padding:30px 0; text-align:center;}
+  .cart-item{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    padding:16px 0; border-bottom:1px solid var(--line);
+  }
+  .cart-item-name{font-family:'Space Grotesk',sans-serif; font-size:0.92rem; margin-bottom:3px;}
+  .cart-item-price{font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:var(--smoke);}
+  .cart-item-remove{background:none; border:none; color:var(--smoke-dark); cursor:pointer; font-size:0.75rem; text-decoration:underline; font-family:'Space Grotesk',sans-serif;}
+  .cart-item-remove:hover{color:var(--ember);}
+  .cart-foot{border-top:1px solid var(--line); padding:22px clamp(20px,4vw,32px);}
+  .cart-subtotal{
+    display:flex; justify-content:space-between; font-family:'Space Grotesk',sans-serif;
+    font-size:1rem; margin-bottom:6px;
+  }
+  .cart-sub-note{font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--smoke-dark);}
+
+  /* ---------- CHECKOUT ---------- */
+  #checkoutOverlay{
+    position:fixed; inset:0; background:rgba(10,12,13,0.75); z-index:95;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    opacity:0; visibility:hidden; transition:opacity .3s ease, visibility .3s ease;
+    backdrop-filter:blur(4px);
+  }
+  #checkoutOverlay.open{opacity:1; visibility:visible;}
+  .checkout-panel{
+    width:min(480px, 100%); max-height:88vh; overflow-y:auto;
+    background:var(--ink-soft); border:1px solid var(--line);
+  }
+  .checkout-head{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding:30px clamp(22px,4vw,36px) 20px;
+  }
+  .checkout-head h3{font-family:'Space Grotesk',sans-serif; font-size:1.5rem; font-weight:600;}
+  .checkout-head p{color:var(--smoke); font-size:0.88rem; margin-top:6px;}
+  .checkout-summary{
+    margin:0 clamp(22px,4vw,36px) 24px; padding:18px 20px;
+    border:1px solid var(--line); background:var(--ink);
+  }
+  .checkout-line{display:flex; justify-content:space-between; font-family:'Space Grotesk',sans-serif; font-size:0.9rem; padding:6px 0;}
+  .checkout-total{
+    display:flex; justify-content:space-between; font-family:'Space Grotesk',sans-serif;
+    font-weight:600; font-size:1.1rem; margin-top:10px; padding-top:12px; border-top:1px solid var(--line);
+  }
+  .checkout-form{padding:0 clamp(22px,4vw,36px) 32px;}
+  .field{margin-bottom:20px;}
+  .field label{
+    display:block; font-family:'IBM Plex Mono',monospace; font-size:0.68rem;
+    letter-spacing:0.1em; text-transform:uppercase; color:var(--smoke); margin-bottom:8px;
+  }
+  .field input, .field textarea{
+    width:100%; background:var(--ink); border:1px solid var(--line); color:var(--vapor);
+    padding:12px 14px; font-family:'Fraunces',serif; font-size:0.95rem;
+    resize:vertical;
+  }
+  .field input:focus, .field textarea:focus{outline:none; border-color:var(--brass);}
+  .field textarea{min-height:80px;}
+  .checkout-submit{width:100%; padding:15px 26px; font-size:0.85rem;}
+  .order-confirm{padding:50px clamp(22px,4vw,36px); text-align:center;}
+  .order-confirm h3{font-family:'Space Grotesk',sans-serif; font-size:1.4rem; margin-bottom:10px;}
+  .order-confirm p{color:var(--smoke); font-size:0.92rem; line-height:1.6;}
+
+  /* ---------- PAYMENT PAGE (shell only, no methods yet) ---------- */
+  .pay-page{padding:40px clamp(22px,4vw,36px) 44px;}
+  .pay-check{
+    width:56px; height:56px; border-radius:50%; background:var(--brass);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 20px;
+    font-size:1.4rem; color:var(--ink);
+  }
+  .pay-page h3{font-family:'Space Grotesk',sans-serif; font-size:1.4rem; text-align:center; margin-bottom:6px;}
+  .pay-page .pay-sub{color:var(--smoke); font-size:0.88rem; text-align:center; margin-bottom:28px;}
+  .pay-amount-box{
+    border:1px solid var(--line); background:var(--ink); padding:22px 24px; margin-bottom:28px;
+  }
+  .pay-amount-label{
+    font-family:'IBM Plex Mono',monospace; font-size:0.68rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--smoke); margin-bottom:8px;
+  }
+  .pay-amount{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:2.4rem;}
+  .pay-choose{font-family:'Space Grotesk',sans-serif; font-size:0.9rem; color:var(--vapor-dim); margin-bottom:18px;}
+  .pay-methods-placeholder{
+    border:1px dashed var(--line); padding:26px; text-align:center;
+    color:var(--smoke-dark); font-family:'IBM Plex Mono',monospace; font-size:0.78rem;
+  }
+  .pay-method-tile{
+    display:flex; align-items:center; gap:14px;
+    border:1px solid var(--brass); background:var(--ink); padding:16px 18px; margin-bottom:14px;
+  }
+  .pay-method-icon{
+    width:38px; height:38px; border-radius:50%; background:#F7931A;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; color:#15181B; flex-shrink:0;
+  }
+  .pay-method-info{flex-grow:1;}
+  .pay-method-info .name{font-family:'Space Grotesk',sans-serif; font-size:0.95rem; font-weight:600;}
+  .pay-method-info .sub{color:var(--smoke); font-size:0.78rem; margin-top:2px;}
+  .pay-address-box{
+    border:1px solid var(--line); background:var(--ink-soft); padding:16px 18px;
+    display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:6px;
+  }
+  .pay-address-box code{
+    font-family:'IBM Plex Mono',monospace; font-size:0.8rem; color:var(--brass-bright);
+    word-break:break-all;
+  }
+  .pay-copy-btn{
+    background:none; border:1px solid var(--line); color:var(--smoke);
+    font-family:'Space Grotesk',sans-serif; font-size:0.7rem; text-transform:uppercase;
+    letter-spacing:0.05em; padding:7px 12px; cursor:pointer; flex-shrink:0;
+  }
+  .pay-copy-btn:hover{border-color:var(--brass); color:var(--vapor);}
+  .pay-address-note{font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--smoke-dark); text-align:center; margin-top:10px;}
+</style>
+</head>
+<body>
+
+  <!-- AGE GATE -->
+  <div id="gate">
+    <div class="stamp">
+      <span class="num">21+</span>
+      <h2>Age Verification Required</h2>
+      <p>Please confirm you are 21 or older to continue.</p>
+      <div class="gate-actions">
+        <button class="btn btn-solid" onclick="document.getElementById('gate').classList.add('hidden')">I am 21 or older</button>
+        <button class="btn btn-ghost" onclick="window.location.href='about:blank'">Exit</button>
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <div class="logo">TOKE CITY</div>
+    <nav>
+      <ul>
+        <li><a href="#catalog">Catalog</a></li>
+        <li><a href="#location">FAQ</a></li>
+      </ul>
+    </nav>
+    <button class="cart-btn" onclick="openCart()" aria-label="Open cart">
+      Cart <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </header>
+
+  <section class="hero">
+    <svg class="vapor-field" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="g1" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#A9824F" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#A9824F" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g>
+        <ellipse cx="220" cy="180" rx="260" ry="140" fill="url(#g1)">
+          <animate attributeName="cx" values="220;340;220" dur="14s" repeatCount="indefinite"/>
+          <animate attributeName="cy" values="180;260;180" dur="18s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="900" cy="500" rx="320" ry="180" fill="url(#g1)" opacity="0.7">
+          <animate attributeName="cx" values="900;760;900" dur="16s" repeatCount="indefinite"/>
+          <animate attributeName="cy" values="500;420;500" dur="20s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="600" cy="700" rx="240" ry="120" fill="url(#g1)" opacity="0.5">
+          <animate attributeName="cx" values="600;500;600" dur="12s" repeatCount="indefinite"/>
+        </ellipse>
+      </g>
+    </svg>
+    <div class="hero-content">
+      <span class="eyebrow">Toke City — Fast, Discreet, Authentic Products Only</span>
+      <h1>The #1 Go To <br><em>Source,</em> Quality<br>Is Our Priority.</h1>
+      <div class="hero-actions">
+        <button class="btn btn-solid" onclick="document.querySelector('#catalog').scrollIntoView()">SHOP NOW</button>
+      </div>
+      <div class="hero-meta">
+       <div>
+    <strong>21+ Only</strong>
+    By visiting this site, you agree that you are 21 years or older.
+</div>
+        <div><strong>Local Pickup</strong>Order ahead, skip the line</div>
+        <div><strong>Since 2022</strong>One shop, one counter</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="catalog" id="catalog">
+    <div class="section-head">
+      <div>
+        <h2>Current Stock Available</h2>
+      </div>
+
+    </div>
+    <div class="tin-grid">
+      <div class="tin">
+        <div class="batch">Disposable Vape</div>
+       <h3>Ovns Ranger</h3>
+        <p>The OVNS Ranger 10,000 Puff vape is rectangular in shape and boats a massive 20mL (50mg/mL Nicotine) capacity of Nicotine salt E-Juice! The OVNS Ranger's 10,000 puff count will keep you vaping long after other disposables would have called it quits!</p>
+        <div class="tin-price">$25</div>
+        <select id="flavor-ovns" style="margin:12px 0;width:100%;padding:10px;background:#15181B;color:white;border:1px solid rgba(255,255,255,.15);">
+    <option>Orange Mango Ice</option>
+    <option>Summer Vibes</option>
+    <option>Watermelon Lemon Drops</option>
+    <option>Peach Berry</option>
+    <option>Prime Pop</option>
+    <option>Grape Ice</option>
+    <option>California Cherry</option>
+</select>
+
+<button
+    class="btn-small"
+    onclick="addToCart(
+        'ovns-ranger',
+        'Ovns Ranger',
+        document.getElementById('flavor-ovns').value,
+        25
+    )">
+    Add to Cart
+</button>
+      </div>
+      <div class="tin">
+        <div class="batch">2G PEN</div>
+        <h3>Major League Extracts Glow Pro 2g</h3>
+       <p>Glow Pro 2g delivers smooth, reliable performance throughout the full 2 grams. Optimized airflow and stable output ensure each draw feels just as satisfying as the last, making it an easy everyday upgrade.</p>
+     <div class="tin-price">$60</div>
+        <select id="flavor-citrus"
+style="margin:12px 0;width:100%;padding:10px;background:#15181B;color:white;border:1px solid rgba(255,255,255,.15);">
+    <option>Jamaican Rum Punch (Sativa)</option>
+    <option>Hardcore OG (Indica)</option>
+    <option>Kool Drunk (Hybrid)</option>
+    <option>Birthday Cake Bash (Sativa)</option>
+     <option>Gobstopper (Hybrid)</option>
+      <option>Peach Bliss (Indica)</option>
+</select>
+<button
+    class="btn-small"
+    onclick="addToCart(
+        'major-glow-pro',
+        'Major League Extracts Glow Pro 2g',
+        document.getElementById('flavor-citrus').value,
+        60
+    )">
+    Add to Cart
+</button>
+      </div>
+   <div class="tin">
+    <div class="batch">Disposable Vape</div>
+
+    <h3>Geekbar Pulse X</h3>
+
+    <p>
+        The Geek Bar Pulse X 25000 delivers up to 25,000 puffs,
+        20mL of pre-filled e-liquid, dual mesh coil technology,
+        and USB-C fast charging.
+    </p>
+
+    <div class="tin-price">$40</div>
+
+    <select id="flavor-geekbar"
+        style="margin:12px 0;width:100%;padding:10px;background:#15181B;color:white;border:1px solid rgba(255,255,255,.15);">
+
+        <option>Banana Ice (5%)</option>
+        <option>Sour Blue Ice (5%)</option>
+        <option>Strawberry Twist Ice (5%)</option>
+        <option>Sour Peach Ice (2%)</option>
+        <option>Rich Tobacco (2%)</option>
+        <option>Raspberry Citrus Ice (5%)</option>
+
+    </select>
+
+    <button
+        class="btn-small"
+        onclick="addToCart(
+            'geekbar-pulse-x',
+            'Geekbar Pulse X',
+            document.getElementById('flavor-geekbar').value,
+            40
+        )">
+        Add to Cart
+    </button>
+</div>  
+<div class="tin">
+    <div class="batch">1G Pen</div>
+
+        <h3>Back Forty 1g Pen</h3>
+        <p>The Back Forty 1g is a rechargeable all-in-one (AIO) disposable vape pen. It features an adjustable airflow "Boost Mode" for bigger clouds, a built-in ceramic coil, and comes in a variety of popular strain-specific flavors.</p>
+        <div class="tin-price">$40</div>
+       
+        <select id="flavor-backforty"
+        style="margin:12px 0;width:100%;padding:10px;background:#15181B;color:white;border:1px solid rgba(255,255,255,.15);">
+
+        <option>Kush Mint (Hybrid)</option>
+        <option>Mango Fuzz (Indica)</option>
+        <option>Iced Grape (Sativa)</option>
+        <option>Punch Bowl (Sativa)</option>
+        <option>Razzle Dazzle (Indica)</option>
+        <option>Key Lime Kush (Hybrid)</option>
+
+    </select>
+       <button
+        class="btn-small"
+        onclick="addToCart(
+            'Back-Forty-1g-Pen',
+            'Back Forty 1g Pen',
+            document.getElementById('flavor-backforty').value,
+            40
+        )">
+        Add to Cart
+    </button>
+</div>  
+
+      <div class="tin">
+        <div class="batch">Disposable Vape</div>
+        <h3>Oxbar x Rocky Vapor G100K</h3>
+        <p>The Raspberry Mango flavour G100K Disposable Vape by Oxbar x Rocky Vapor delivers up to 100000 puffs of vapor with 30mL of e-liquid and a 1000mAh rechargeable battery, dual mesh coils, and multiple firing modes, adjustable airflow, and a large color screen.</p>
+        <div class="tin-price">$45</div>
+       <select id="flavor-oxbar"
+        style="margin:12px 0;width:100%;padding:10px;background:#15181B;color:white;border:1px solid rgba(255,255,255,.15);">
+
+        <option>Raspberry Mango (2%)</option>
+        <option>Peach Watermelon (2%)</option>
+        <option>Blueberry Raspberry (2%)</option>
+        <option>Cherry Watermelon (2%)</option>
+        <option>Blueberry Raspberry Peach (2%)</option>
+
+   </select>
+       <button
+        class="btn-small"
+        onclick="addToCart(
+            'Oxbar-x-Rocky-Vapor-G100K',
+            'Oxbar x Rocky Vapor G100K',
+            document.getElementById('flavor-oxbar').value,
+            45
+        )">
+        Add to Cart
+    </button>
+</div>  
+     
+     
+      <div class="tin">
+        <div class="batch">1g Cart</div>
+        <h3>Jays High Potency 95+ 510 Cartridge</h3>
+        <p>Jays presents playful, potent products full of flavour in convenient formats for everyday Canadians. Our highest potency, pure THC distillate is expertly formulated, Captured in a universal 510 cart for convenient pulls.</p>
+        <div class="tin-price">$30</div>
+     
+     
+       <select id="flavor-Jays"
+        style="margin:12px 0;width:100%;padding:10px;background:#15181B;color:white;border:1px solid rgba(255,255,255,.15);">
+
+        <option>Pink Cherry (Indica)</option>
+        <option>Macchiato Gold (Hybrid))</option>
+        <option>Mint Mocha Frap (Indica)</option>
+        <option>Strawberry Ripple (Sativa)</option>
+        <option>Root Rush (Indica)</option>
+        <option>Get Buttered (Sativa)</option>
+   </select>
+       <button
+        class="btn-small"
+        onclick="addToCart(
+            'Jays-High-Potency-95+-510-Cartridge',
+            'Jays High Potency 95+ 510 Cartridge',
+            document.getElementById('flavor-Jays').value,
+            30
+        )">
+        Add to Cart
+    </button>
+</div>  
+    
+    
+     <div class="tin">
+        <div class="batch">Accessory</div>
+        <h3>Cookies 510 Thread Cart Battery</h3>
+        <p>Cookies 510 Vape Cart Battery – Premium Button-Activated Power Enhance your vaping experience with the Cookies 510 Vape Cart Battery—a sleek, reliable, and high-performance battery designed for optimal flavor and consistent power. *Compatible with 510 Vape Cartridge*. </p>
+        <div class="tin-price">$13</div>
+       <button
+  class="btn-small"
+  onclick="addToCart(
+    'cookies-510-battery',
+    'Cookies 510 Thread Cart Battery',
+    'Standard',
+    13
+  )">
+  Add to Cart
+</button>
+      </div>
+      
+      
+       
+      
+    
+    
+  </section>
+  
+
+  <section class="location" id="location">
+    <div class="loc-grid">
+      <div class="addr-block">
+        <span class="eyebrow">FAQ</span>
+    <h2 style="font-family:'Space Grotesk',sans-serif; font-size:2rem; margin:14px 0 24px;">Frequently asked Questions</h2>
+        <p class="big">What does the packaging look like? All orders are shipped in plain, discreet packaging, with no labels or brands identifying the contents.</p>
+        <p>Are your products authentic?<br>Yes, every product is sealed and authentic, We don't carry knock offs or refills. If we wouldn't use it ourselves, we don't sell it. </p>
+        <p>How long do orders take? US and Canada orders typically take 2-5 days. We currently ship within the US and Canada only. You will recieve a tracking number once the product is shipped.</p>
+      </div>
+      <div>
+        <span class="eyebrow">Hours</span>
+        <table class="hours-table" style="margin-top:14px;">
+          <tr><td>Monday – Thursday</td><td>11:00 – 20:00</td></tr>
+          <tr><td>Friday – Saturday</td><td>11:00 – 21:00</td></tr>
+          <tr><td>Sunday</td><td>12:00 – 18:00</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-top">
+      <div class="logo">TOKE CITY</div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Toke City</span>
+    </div>
+  </footer>
+  <div id="cartOverlay" onclick="closeCart()"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping cart">
+    <div class="cart-head">
+      <h3>Your Cart</h3>
+      <button class="cart-close" onclick="closeCart()" aria-label="Close cart">&times;</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <p class="cart-empty">Your cart is empty.</p>
+    </div>
+    <div class="cart-foot">
+      <div class="cart-subtotal"><span>Subtotal</span><span id="cartSubtotal">$0.00</span></div>
+      <button class="btn btn-solid" style="width:100%;" onclick="openCheckout()">Checkout</button>
+    </div>
+  </aside>
+
+  <div id="checkoutOverlay">
+    <div class="checkout-panel" id="checkoutPanel">
+      <div class="checkout-head">
+        <div>
+          <h3>Place Order</h3>
+          <p>Fill in your details below.</p>
+        </div>
+        <button class="cart-close" onclick="closeCheckout()" aria-label="Close checkout">&times;</button>
+      </div>
+      <div class="checkout-summary" id="checkoutSummary"></div>
+      <form class="checkout-form" onsubmit="submitOrder(event)">
+        <div class="field">
+          <label for="ordName">Your Name</label>
+          <input id="ordName" type="text" placeholder="Full name">
+        </div>
+        <div class="field">
+          <label for="ordContact">Contact — Phone or Email</label>
+          <input id="ordContact" type="text" placeholder="you@example.com or phone number">
+        </div>
+        <div class="field">
+          <label for="ordAddress">Street Address</label>
+          <textarea id="ordAddress" placeholder="Street Address"></textarea>
+        </div>
+        
+          <div class="field">
+          <label for="ordopt">Apartment, suite, or unit number (if applicable)</label>
+          <textarea id="ordopt" placeholder="Apartment, suite, or unit number (if applicable)"></textarea>
+        </div>
+        
+       <div class="field">
+       <label for="ordCountry">Country</label>
+          <textarea id="ordCountry" placeholder="Country"></textarea>
+        </div>
+       <div class="field">
+       <label for="ordZIP/POSTALCODE">ZIP/POSTAL CODE</label>
+          <textarea id="ordZIP/POSTALCODE" placeholder="ZIP/POSTAL CODE"></textarea>
+        </div>
+      
+         <div class="field">
+       <label for="ordState">State/Province</label>
+          <textarea id="ordState" placeholder="State/Province"></textarea>
+        </div>
+      
+        <div class="field">
+          <label for="ordNotes">Notes (Optional)</label>
+          <textarea id="ordNotes" placeholder="Special requests..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-solid checkout-submit">Submit Order</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let cart = [];
+const SHIPPING = 15;
+   function addToCart(id, name, flavor, price){
+
+    const cartId = id + "-" + flavor;
+
+    const existing = cart.find(item => item.id === cartId);
+
+    if(existing){
+        existing.qty++;
+    }else{
+        cart.push({
+            id: cartId,
+            name,
+            flavor,
+            price,
+            qty:1
+        });
+    }
+
+    renderCart();
+    openCart();
+}
+    function removeFromCart(id){
+      cart = cart.filter(item => item.id !== id);
+      renderCart();
+    }
+
+   function renderCart(){
+  const container = document.getElementById('cartItems');
+  const countEl = document.getElementById('cartCount');
+  const subtotalEl = document.getElementById('cartSubtotal');
+
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  const total = subtotal + SHIPPING;
+
+  countEl.textContent = totalItems;
+
+  if(cart.length === 0){
+    container.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
+  } else {
+    container.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div>
+          <div class="cart-item-name">
+            ${item.name}
+            ${item.qty > 1 ? ' × ' + item.qty : ''}
+          </div>
+
+          <div class="cart-item-price">
+            Flavor: ${item.flavor}
+          </div>
+
+          <div class="cart-item-price">
+            $${item.price.toFixed(2)}
+          </div>
+        </div>
+
+        <button class="cart-item-remove" onclick="removeFromCart('${item.id}')">
+          Remove
+        </button>
+      </div>
+    `).join('');
+  }
+
+  subtotalEl.textContent = '$' + subtotal.toFixed(2);
+}
+
+    
+
+
+    function openCart(){
+      document.getElementById('cartDrawer').classList.add('open');
+      document.getElementById('cartOverlay').classList.add('open');
+    }
+
+    function closeCart(){
+      document.getElementById('cartDrawer').classList.remove('open');
+      document.getElementById('cartOverlay').classList.remove('open');
+    }
+
+    function openCheckout(){
+  const summary = document.getElementById('checkoutSummary');
+
+  if(cart.length === 0){
+    summary.innerHTML = '<p style="color:var(--smoke); font-size:0.9rem;">Your cart is empty — add something from the catalog first.</p>';
+  } else {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+    summary.innerHTML = cart.map(item => `
+      <div class="checkout-line">
+        <span>
+          ${item.name}<br>
+          <small>${item.flavor}</small>
+          ${item.qty > 1 ? ' × ' + item.qty : ''}
+        </span>
+        <span>$${(item.price * item.qty).toFixed(2)}</span>
+      </div>
+    `).join('') + `
+      <div class="checkout-total">
+        <span>Total</span>
+        <span>$${subtotal.toFixed(2)}</span>
+      </div>
+    `;
+  }
+
+  closeCart();
+  document.getElementById('checkoutOverlay').classList.add('open');
+}
+
+    function generateFakeBtcAddress(){
+      const chars = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+      let addr = 'bc1q';
+      for(let i = 0; i < 38; i++){
+        addr += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return addr;
+    }
+
+    function copyBtcAddr(){
+      const text = document.getElementById('btcAddr').textContent;
+      navigator.clipboard.writeText(text).catch(() => {});
+      const btn = document.querySelector('.pay-copy-btn');
+      if(btn){
+        const original = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = original; }, 1200);
+      }
+    }
+
+    function closeCheckout(){
+      document.getElementById('checkoutOverlay').classList.remove('open');
+    }
+function generateOrderNumber(){
+  const random = Math.floor(100000 + Math.random() * 900000);
+  return "TC-" + random;
+}
+    function submitOrder(e){
+  e.preventDefault();
+const orderNumber = generateOrderNumber();
+  const panel = document.getElementById('checkoutPanel');
+
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+  panel.innerHTML = `
+    <div class="pay-page">
+      <div class="pay-check">&#10003;</div>
+     <h3>Order Received</h3>
+<p class="pay-sub">
+  Order Number: <strong>${orderNumber}</strong>
+</p>
+<p class="pay-sub">Please send the equivalent amount in CAD.</p>
+
+      <div class="pay-amount-box">
+        <div class="pay-amount-label">Amount Due</div>
+        <div class="pay-amount">$${subtotal.toFixed(2)}</div>
+      </div>
+
+      <div class="pay-choose">
+        Message @TokeCity2022 on Telegram with your order # and transaction ID.
+      </div>
+
+     <div class="pay-method-tile">
+  <div class="pay-method-icon" style="background:#0070ba;color:white;font-weight:700;">
+    P
+  </div>
+  <div class="pay-method-info">
+    <div class="name">PayPal</div>
+    <div class="sub">@ANDREWFU203 Friends & Family only</div>
+  </div>
+</div>
+
+<div class="pay-method-tile">
+  <div class="pay-method-icon">&#8383;</div>
+  <div class="pay-method-info">
+    <div class="name">Bitcoin</div>
+    <div class="sub">Send the exact amount to the address below</div>
+   
+    <div class="pay-address-box">
+  <code id="btcAddr">bc1qyhzetfaf45vuwmvcef0j9fvt4v3vf59pkz0xmz</code>
+  <button class="pay-copy-btn" onclick="copyBtcAddr()">Copy</button></div>
+  </div>
+</div>
+
+<div class="pay-method-tile">
+  <div class="pay-method-icon" style="background:#4CAF50;color:white;font-weight:700;">
+    E
+  </div>
+  <div class="pay-method-info">
+    <div class="name">Interac e-Transfer</div>
+  <div class="sub">Send to: fu.andrew.j@gmail.com </div>
+</div>
+</div>
+      <button class="btn btn-ghost" style="width:100%; margin-top:24px;" onclick="closeCheckout()">
+        Close
+      </button>
+    </div>
+  `;
+
+  cart = [];
+  renderCart();
+}
+  </script>
+
+</body>
+</html>
