@@ -22,8 +22,9 @@
   --danger:#d56a5a;
   --radius:18px;
   --shadow:0 24px 70px rgba(0,0,0,.34);
-  
-  .product-filters{
+}
+
+.product-filters{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
@@ -473,11 +474,11 @@ footer{background:#090b0d;border-top:1px solid var(--line);padding:50px clamp(20
 
     <div class="catalog-toolbar">
       <div class="product-filters" role="tablist" aria-label="Filter products">
-        <button class="filter-btn active" type="button" data-filter="all" onclick="filterProducts('all', this)">All Products</button>
-        <button class="filter-btn" type="button" data-filter="disposables" onclick="filterProducts('disposables', this)">Disposables</button>
-        <button class="filter-btn" type="button" data-filter="pens" onclick="filterProducts('pens', this)">Pens</button>
-        <button class="filter-btn" type="button" data-filter="cartridges" onclick="filterProducts('cartridges', this)">Cartridges</button>
-        <button class="filter-btn" type="button" data-filter="accessories" onclick="filterProducts('accessories', this)">Accessories</button>
+        <button class="filter-btn active" type="button" data-filter="all">
+        <button class="filter-btn" type="button" data-filter="disposables" >Disposables</button>
+        <button class="filter-btn" type="button" data-filter="pens" >Pens</button>
+        <button class="filter-btn" type="button" data-filter="cartridges" >Cartridges</button>
+        <button class="filter-btn" type="button" data-filter="accessories" >Accessories</button>
       </div>
       <div class="product-count" id="productCount">Showing all products</div>
     </div>
@@ -880,11 +881,19 @@ const SHIPPING = 20;
   const container = document.getElementById('cartItems');
   const countEl = document.getElementById('cartCount');
   const subtotalEl = document.getElementById('cartSubtotal');
+ const totalEl = document.getElementById('cartTotal');
+
+...
+
+totalEl.textContent = '$' + total.toFixed(2);
+
 
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
- const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-const total = subtotal + SHIPPING;
- 
+  const subtotal = cart.reduce(
+    (sum, item) => sum + (item.price * item.qty),
+    0
+  );
+  const total = subtotal + SHIPPING;
 
   countEl.textContent = totalItems;
 
@@ -908,53 +917,19 @@ const total = subtotal + SHIPPING;
           </div>
         </div>
 
-        <button class="cart-item-remove" onclick="removeFromCart('${item.id}')">
+        <button
+          class="cart-item-remove"
+          onclick="removeFromCart('${item.id}')">
           Remove
         </button>
       </div>
     `).join('');
   }
 
-  subtotalEl.textContent = '$' + subtotal.toFixed(2);
+  
+  totalEl.textContent = '$' + total.toFixed(2);
 }
 
-    
-
-
-    function openCart(){
-      document.getElementById('cartDrawer').classList.add('open');
-      document.getElementById('cartOverlay').classList.add('open');
-    }
-
-    function closeCart(){
-      document.getElementById('cartDrawer').classList.remove('open');
-      document.getElementById('cartOverlay').classList.remove('open');
-    }
-
-    function openCheckout(){
-  const summary = document.getElementById('checkoutSummary');
-
-  if(cart.length === 0){
-    summary.innerHTML = '<p style="color:var(--smoke); font-size:0.9rem;">Your cart is empty — add something from the catalog first.</p>';
-  } else {
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-
-    summary.innerHTML = cart.map(item => `
-      <div class="checkout-line">
-        <span>
-          ${item.name}<br>
-          <small>${item.flavor}</small>
-          ${item.qty > 1 ? ' × ' + item.qty : ''}
-        </span>
-        <span>$${(item.price * item.qty).toFixed(2)}</span>
-      </div>
-    `).join('') + `
-      <div class="checkout-total">
-        <span>Total</span>
-        <span>$${subtotal.toFixed(2)}</span>
-      </div>
-    `;
-  }
 
   closeCart();
   document.getElementById('checkoutOverlay').classList.add('open');
@@ -992,9 +967,11 @@ function generateOrderNumber(){
 const orderNumber = generateOrderNumber();
   const panel = document.getElementById('checkoutPanel');
 
-  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+const total = subtotal + SHIPPING;
 
-  panel.innerHTML = `
+panel.innerHTML = `
+
     <div class="pay-page">
       <div class="pay-check">&#10003;</div>
      <h3>Order Received</h3>
@@ -1003,10 +980,10 @@ const orderNumber = generateOrderNumber();
 </p>
 <p class="pay-sub">Please send the equivalent amount in CAD.</p>
 
-      <div class="pay-amount-box">
-        <div class="pay-amount-label">Amount Due</div>
-        <div class="pay-amount">$${total.toFixed(2)}</div>
-      </div>
+    <div class="checkout-total">
+  <span>Total</span>
+  <span>$${total.toFixed(2)}</span>
+</div>
 
       <div class="pay-choose">
         Message @EchleonLabs on Telegram with your order # and transaction ID after payment is complete.
