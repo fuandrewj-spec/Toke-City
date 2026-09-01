@@ -243,11 +243,13 @@ section{padding:100px clamp(20px,5vw,72px)}
 .tin:hover{transform:translateY(-4px);border-color:var(--line-strong);box-shadow:var(--shadow)}
 .tin-image{
   width:100%;
-  height:190px;
+  height:220px;
   display:block;
-  object-fit:cover;
-  border-bottom:1px solid var(--line);
+  object-fit:contain;
+  object-position:center;
   background:#15181b;
+  border-bottom:1px solid var(--line);
+  padding:10px;
 }
 .tin>*:not(:first-child),.tin>.batch{margin-left:20px;margin-right:20px}
 .tin .batch{
