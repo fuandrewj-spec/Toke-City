@@ -773,10 +773,26 @@ style="margin:12px 0;width:100%;padding:10px;background:#15181B;color:white;bord
     <div class="cart-items" id="cartItems">
       <p class="cart-empty">Your cart is empty.</p>
     </div>
-    <div class="cart-foot">
-      <div class="cart-subtotal"><span>Subtotal</span><span id="cartSubtotal">$0.00</span></div>
-      <button class="btn btn-solid" style="width:100%;" onclick="openCheckout()">Checkout</button>
-    </div>
+  <div class="cart-foot">
+  <div class="cart-subtotal">
+    <span>Subtotal</span>
+    <span id="cartSubtotal">$0.00</span>
+  </div>
+
+  <div class="cart-subtotal">
+    <span>Shipping</span>
+    <span>$20.00</span>
+  </div>
+
+  <div class="cart-subtotal" style="font-weight:700; margin-top:10px;">
+    <span>Total</span>
+    <span id="cartTotal">$20.00</span>
+  </div>
+
+  <button class="btn btn-solid" style="width:100%; margin-top:15px;" onclick="openCheckout()">
+    Checkout
+  </button>
+</div>
   </aside>
 
   <div id="checkoutOverlay">
@@ -833,7 +849,7 @@ style="margin:12px 0;width:100%;padding:10px;background:#15181B;color:white;bord
 
   <script>
     let cart = [];
-const SHIPPING = 15;
+const SHIPPING = 20;
    function addToCart(id, name, flavor, price){
 
     const cartId = id + "-" + flavor;
@@ -866,8 +882,9 @@ const SHIPPING = 15;
   const subtotalEl = document.getElementById('cartSubtotal');
 
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
-  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const total = subtotal + SHIPPING;
+ const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+const total = subtotal + SHIPPING;
+ 
 
   countEl.textContent = totalItems;
 
@@ -988,7 +1005,7 @@ const orderNumber = generateOrderNumber();
 
       <div class="pay-amount-box">
         <div class="pay-amount-label">Amount Due</div>
-        <div class="pay-amount">$${subtotal.toFixed(2)}</div>
+        <div class="pay-amount">$${total.toFixed(2)}</div>
       </div>
 
       <div class="pay-choose">
