@@ -849,8 +849,8 @@ style="margin:12px 0;width:100%;padding:10px;background:#15181B;color:white;bord
     </div>
   </div>
 
-  <script>
-    let cart = [];
+<script>
+let cart = [];
 const SHIPPING = 20;
 
 function openCart(){
@@ -864,34 +864,34 @@ function closeCart(){
 }
 
 function addToCart(id, name, flavor, price){
-    
-   function addToCart(id, name, flavor, price){
 
-    const cartId = id + "-" + flavor;
+  const cartId = id + "-" + flavor;
 
-    const existing = cart.find(item => item.id === cartId);
+  const existing = cart.find(item => item.id === cartId);
 
-    if(existing){
-        existing.qty++;
-    }else{
-        cart.push({
-            id: cartId,
-            name,
-            flavor,
-            price,
-            qty:1
-        });
-    }
+  if(existing){
+    existing.qty++;
+  }else{
+    cart.push({
+      id: cartId,
+      name: name,
+      flavor: flavor,
+      price: price,
+      qty: 1
+    });
+  }
 
-    renderCart();
-    openCart();
+  renderCart();
+  openCart();
 }
-    function removeFromCart(id){
-      cart = cart.filter(item => item.id !== id);
-      renderCart();
-    }
+
+function removeFromCart(id){
+  cart = cart.filter(item => item.id !== id);
+  renderCart();
+}
 
 function renderCart(){
+
   const container = document.getElementById('cartItems');
   const countEl = document.getElementById('cartCount');
   const subtotalEl = document.getElementById('cartSubtotal');
@@ -907,18 +907,22 @@ function renderCart(){
     0
   );
 
-  const total = subtotal + SHIPPING;
+  const total = cart.length > 0 ? subtotal + SHIPPING : 0;
 
   countEl.textContent = totalItems;
   subtotalEl.textContent = '$' + subtotal.toFixed(2);
   totalEl.textContent = '$' + total.toFixed(2);
 
   if(cart.length === 0){
+
     container.innerHTML =
       '<p class="cart-empty">Your cart is empty.</p>';
-  } else {
+
+  }else{
+
     container.innerHTML = cart.map(item => `
       <div class="cart-item">
+
         <div>
           <div class="cart-item-name">
             ${item.name}
@@ -930,7 +934,7 @@ function renderCart(){
           </div>
 
           <div class="cart-item-price">
-            $${item.price.toFixed(2)}
+            $${item.price.toFixed(2)} each
           </div>
         </div>
 
@@ -939,13 +943,14 @@ function renderCart(){
           onclick="removeFromCart('${item.id}')">
           Remove
         </button>
+
       </div>
     `).join('');
   }
 }
 
-
 function openCheckout(){
+
   if(cart.length === 0){
     alert('Your cart is empty.');
     return;
@@ -962,13 +967,19 @@ function openCheckout(){
 
   summary.innerHTML = cart.map(item => `
     <div class="checkout-line">
+
       <span>
         ${item.name} × ${item.qty}
         <small>${item.flavor}</small>
       </span>
-      <span>$${(item.price * item.qty).toFixed(2)}</span>
+
+      <span>
+        $${(item.price * item.qty).toFixed(2)}
+      </span>
+
     </div>
   `).join('') + `
+
     <div class="checkout-line">
       <span>Shipping</span>
       <span>$${SHIPPING.toFixed(2)}</span>
@@ -981,116 +992,207 @@ function openCheckout(){
   `;
 
   closeCart();
+
   document.getElementById('checkoutOverlay').classList.add('open');
 }
 
+function copyBtcAddr(){
 
-   
+  const text = document.getElementById('btcAddr').textContent;
 
-    function copyBtcAddr(){
-      const text = document.getElementById('btcAddr').textContent;
-      navigator.clipboard.writeText(text).catch(() => {});
-      const btn = document.querySelector('.pay-copy-btn');
-      if(btn){
-        const original = btn.textContent;
-        btn.textContent = 'Copied';
-        setTimeout(() => { btn.textContent = original; }, 1200);
-      }
-    }
+  navigator.clipboard.writeText(text).catch(() => {});
 
-    function closeCheckout(){
-      document.getElementById('checkoutOverlay').classList.remove('open');
-    }
+  const btn = document.querySelector('.pay-copy-btn');
+
+  if(btn){
+
+    const original = btn.textContent;
+
+    btn.textContent = 'Copied';
+
+    setTimeout(() => {
+      btn.textContent = original;
+    }, 1200);
+  }
+}
+
+function closeCheckout(){
+  document.getElementById('checkoutOverlay').classList.remove('open');
+}
+
 function generateOrderNumber(){
-  const random = Math.floor(100000 + Math.random() * 900000);
+
+  const random =
+    Math.floor(100000 + Math.random() * 900000);
+
   return "TC-" + random;
 }
-    function submitOrder(e){
+
+function submitOrder(e){
+
   e.preventDefault();
-const orderNumber = generateOrderNumber();
-  const panel = document.getElementById('checkoutPanel');
 
-const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-const total = subtotal + SHIPPING;
+  if(cart.length === 0){
+    alert('Your cart is empty.');
+    return;
+  }
 
-panel.innerHTML = `
+  const orderNumber = generateOrderNumber();
+
+  const panel =
+    document.getElementById('checkoutPanel');
+
+  const subtotal = cart.reduce(
+    (sum, item) => sum + (item.price * item.qty),
+    0
+  );
+
+  const total = subtotal + SHIPPING;
+
+  panel.innerHTML = `
 
     <div class="pay-page">
+
       <div class="pay-check">&#10003;</div>
-     <h3>Order Received</h3>
-<p class="pay-sub">
-  Order Number: <strong>${orderNumber}</strong>
-</p>
-<p class="pay-sub">Please send the equivalent amount in CAD.</p>
 
-    <div class="checkout-total">
-  <span>Total</span>
-  <span>$${total.toFixed(2)}</span>
-</div>
+      <h3>Order Received</h3>
 
-      <div class="pay-choose">
-        Message @EchleonLabs on Telegram with your order # and transaction ID after payment is complete.
+      <p class="pay-sub">
+        Order Number:
+        <strong>${orderNumber}</strong>
+      </p>
+
+      <p class="pay-sub">
+        Please send the equivalent amount in CAD.
+      </p>
+
+      <div class="checkout-total">
+        <span>Total</span>
+        <span>$${total.toFixed(2)}</span>
       </div>
 
-     <div class="pay-method-tile">
-  <div class="pay-method-icon" style="background:#0070ba;color:white;font-weight:700;">
-    P
-  </div>
-  <div class="pay-method-info">
-    <div class="name">PayPal</div>
-    <div class="sub">@KaylanKhuth Friends & Family only</div>
-  </div>
-</div>
+      <div class="pay-choose">
+        Message @EchleonLabs on Telegram with your
+        order # and transaction ID after payment is complete.
+      </div>
 
-<div class="pay-method-tile">
-  <div class="pay-method-icon">&#8383;</div>
-  <div class="pay-method-info">
-    <div class="name">Bitcoin</div>
-    <div class="sub">Send the exact amount to the address below</div>
-   
-    <div class="pay-address-box">
-  <code id="btcAddr">bc1q82y2m3h72sl8xc5y8sk8h70nvjgeh45htzlsmr</code>
-  <button class="pay-copy-btn" onclick="copyBtcAddr()">Copy</button></div>
-  </div>
-</div>
+      <div class="pay-method-tile">
 
-<div class="pay-method-tile">
-  <div class="pay-method-icon" style="background:#4CAF50;color:white;font-weight:700;">
-    E
-  </div>
-  <div class="pay-method-info">
-    <div class="name">Interac e-Transfer</div>
-  <div class="sub">Send to: fu.andrew.j@gmail.com </div>
-</div>
-</div>
-      <button class="btn btn-ghost" style="width:100%; margin-top:24px;" onclick="closeCheckout()">
+        <div
+          class="pay-method-icon"
+          style="background:#0070ba;color:white;font-weight:700;">
+          P
+        </div>
+
+        <div class="pay-method-info">
+
+          <div class="name">
+            PayPal
+          </div>
+
+          <div class="sub">
+            @KaylanKhuth Friends & Family only
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="pay-method-tile">
+
+        <div class="pay-method-icon">
+          &#8383;
+        </div>
+
+        <div class="pay-method-info">
+
+          <div class="name">
+            Bitcoin
+          </div>
+
+          <div class="sub">
+            Send the exact amount to the address below
+          </div>
+
+          <div class="pay-address-box">
+
+            <code id="btcAddr">
+              bc1q82y2m3h72sl8xc5y8sk8h70nvjgeh45htzlsmr
+            </code>
+
+            <button
+              class="pay-copy-btn"
+              onclick="copyBtcAddr()">
+              Copy
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="pay-method-tile">
+
+        <div
+          class="pay-method-icon"
+          style="background:#4CAF50;color:white;font-weight:700;">
+          E
+        </div>
+
+        <div class="pay-method-info">
+
+          <div class="name">
+            Interac e-Transfer
+          </div>
+
+          <div class="sub">
+            Send to: fu.andrew.j@gmail.com
+          </div>
+
+        </div>
+
+      </div>
+
+      <button
+        class="btn btn-ghost"
+        style="width:100%;margin-top:24px;"
+        onclick="closeCheckout()">
         Close
       </button>
+
     </div>
   `;
 
   cart = [];
+
   renderCart();
 }
+
 
 /* =========================
    PRODUCT CATEGORY FILTER
    ========================= */
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function(){
 
-  const filterButtons = document.querySelectorAll(".filter-btn");
-  const products = document.querySelectorAll(".tin");
-  const productCount = document.getElementById("productCount");
+  const filterButtons =
+    document.querySelectorAll(".filter-btn");
 
-  filterButtons.forEach(function (button) {
+  const products =
+    document.querySelectorAll(".tin");
 
-    button.addEventListener("click", function () {
+  const productCount =
+    document.getElementById("productCount");
 
-      const selectedCategory = button.dataset.filter;
+  filterButtons.forEach(function(button){
 
-      // Change active button
-      filterButtons.forEach(function (btn) {
+    button.addEventListener("click", function(){
+
+      const selectedCategory =
+        button.dataset.filter;
+
+      filterButtons.forEach(function(btn){
         btn.classList.remove("active");
       });
 
@@ -1098,41 +1200,52 @@ document.addEventListener("DOMContentLoaded", function () {
 
       let visibleProducts = 0;
 
-      // Show/hide products
-      products.forEach(function (product) {
+      products.forEach(function(product){
 
-        const productCategory = product.dataset.category;
+        const productCategory =
+          product.dataset.category;
 
-        if (
+        if(
           selectedCategory === "all" ||
           productCategory === selectedCategory
-        ) {
+        ){
+
           product.style.display = "";
           visibleProducts++;
-        } else {
+
+        }else{
+
           product.style.display = "none";
+
         }
 
       });
 
-      // Update product counter
-      if (selectedCategory === "all") {
+      if(selectedCategory === "all"){
+
         productCount.textContent =
-          "Showing all products · " + visibleProducts;
-      } else {
+          "Showing all products · " +
+          visibleProducts;
+
+      }else{
+
         productCount.textContent =
-          "Showing " + selectedCategory + " · " + visibleProducts;
+          "Showing " +
+          selectedCategory +
+          " · " +
+          visibleProducts;
+
       }
 
     });
 
   });
 
+  /* Initialize cart */
+  renderCart();
+
 });
-
-
-
-  </script>
+</script>
 
 </body>
 </html>
